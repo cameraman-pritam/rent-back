@@ -37,6 +37,7 @@ const Root = () => {
           <img src={icon} className="rounded-3xl" />
         </div>
       </div>
+      <Divider />
     </>
   );
 };
