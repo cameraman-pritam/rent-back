@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { InputText } from "primereact/inputtext";
 import { Password } from "primereact/password";
 import { Button } from "primereact/button";
@@ -10,16 +10,37 @@ import { auth } from "../../utils/firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  RecaptchaVerifier, // 1. Import RecaptchaVerifier here
 } from "firebase/auth";
 import Swal from "sweetalert2";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [number, setNumber] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = React.useState(true);
+  const [user, setUser] = React.useState(null);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [number, setNumber] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+
+  // 2. Initialise reCAPTCHA safely when the component loads
+  React.useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container"
+      );
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,20 +50,33 @@ export default function Auth() {
       let response;
       if (isLogin) {
         response = await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        response = await createUserWithEmailAndPassword(auth, email, password);
-      }
-
-      if (isLogin) {
         console.log("Logged in successfully:", response.user);
         Swal.fire({ title: "Success!", text: "Logged in successfully!" });
-        // TODO: Redirect user or update global auth state here
       } else {
-        console.log("User created successfully:", response.user);
-        alert(
-          "Account created successfully! Please check your email to verify your account."
-        );
-        setIsLogin(true); // Switch to login form after successful signup
+        if (email) {
+          response = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          console.log("User created successfully:", response.user);
+          alert(
+            "Account created successfully! Please check your email to verify your account."
+          );
+          setIsLogin(true);
+        } else {
+          // 3. Use the initialised appVerifier here
+          const appVerifier = window.recaptchaVerifier;
+          const confirmationResult = await signInWithPhoneNumber(
+            auth,
+            number,
+            appVerifier
+          );
+          window.confirmationResult = confirmationResult;
+
+          alert("SMS sent! (Note: We need an OTP input to finish this!)");
+          // Notice we don't say "account created" yet, because they still need to enter the OTP!
+        }
       }
     } catch (error) {
       console.error("Auth Error:", error);
@@ -52,7 +86,6 @@ export default function Auth() {
     }
   };
 
-  // Structured to match the `About` component's title prop pattern
   const cardTitle = (
     <div className="text-center">
       <h3 className="font-bold text-2xl text-gray-800">
@@ -67,7 +100,6 @@ export default function Auth() {
     </div>
   );
 
-  // Extracting the toggle into a footer for cleaner Card structure
   const cardFooter = (
     <>
       <Divider align="center" className="my-4">
@@ -99,7 +131,6 @@ export default function Auth() {
             {!isLogin && (
               <div className="flex flex-col gap-2">
                 <FloatLabel>
-                  {" "}
                   <label
                     htmlFor="name"
                     className="text-sm font-medium text-gray-700"
@@ -120,7 +151,6 @@ export default function Auth() {
 
             <div className="flex flex-col gap-2">
               <FloatLabel>
-                {" "}
                 <label
                   htmlFor="email"
                   className="text-sm font-medium text-gray-700"
@@ -134,10 +164,10 @@ export default function Auth() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="w-full p-2 border border-gray-300 rounded-md"
-                  required
                 />
               </FloatLabel>
             </div>
+
             {!isLogin && (
               <div className="flex flex-col gap-2">
                 <FloatLabel>
@@ -147,23 +177,20 @@ export default function Auth() {
                   >
                     Mobile Number
                   </label>
-
                   <InputText
                     id="number"
-                    type="mobile"
-                    keyfilter="num"
+                    type="tel"
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
                     placeholder="+91 99999 99999"
                     className="w-full p-2 border border-gray-300 rounded-md"
-                    required
                   />
                 </FloatLabel>
               </div>
             )}
+
             <div className="flex flex-col gap-2">
               <FloatLabel>
-                {" "}
                 <label
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
@@ -182,6 +209,9 @@ export default function Auth() {
                 />
               </FloatLabel>
             </div>
+
+            {/* 4. The container for the reCAPTCHA to attach itself to */}
+            <div id="recaptcha-container"></div>
 
             <Button
               label={
