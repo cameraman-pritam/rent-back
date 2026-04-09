@@ -10,15 +10,20 @@ import { auth, db } from "../../utils/firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  onAuthStateChanged,
   signOut,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import Swal from "sweetalert2";
 
+// Import your new custom hook (adjust the path if you placed the context folder elsewhere)
+import { useAuth } from "../context/AuthContext";
+
 export default function Auth() {
+  // Grab the global user and userData from your Context!
+  const { user, userData } = useAuth();
+
   const [isLogin, setIsLogin] = React.useState(true);
-  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
 
   // Form States
   const [email, setEmail] = React.useState("");
@@ -26,15 +31,6 @@ export default function Auth() {
   const [name, setName] = React.useState("");
   const [number, setNumber] = React.useState("");
   const [address, setAddress] = React.useState("");
-
-  const [loading, setLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -54,6 +50,7 @@ export default function Auth() {
           email,
           password
         );
+        // Save the extra details to Firestore during sign-up
         await setDoc(doc(db, "users", response.user.uid), {
           name,
           email,
@@ -121,15 +118,24 @@ export default function Auth() {
               <p className="text-white">
                 Logged in as: <strong>{user.email}</strong>
               </p>
-              <p>
-                Name: <strong>{user.name}</strong>
-              </p>
-              <p>
-                Mobile Number: <strong>{user.number}</strong>
-              </p>
-              <p>
-                Address: <strong>{user.address}</strong>
-              </p>
+
+              {/* DISPLAY FIRESTORE DATA HERE */}
+              {userData ? (
+                <>
+                  <p className="text-white">
+                    Name: <strong>{userData.name}</strong>
+                  </p>
+                  <p className="text-white">
+                    Mobile Number: <strong>{userData.number}</strong>
+                  </p>
+                  <p className="text-white">
+                    Address: <strong>{userData.address}</strong>
+                  </p>
+                </>
+              ) : (
+                <p className="text-gray-500 italic">Loading profile data...</p>
+              )}
+
               <Button
                 label="Logout"
                 onClick={handleLogout}
