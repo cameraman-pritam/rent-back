@@ -4,7 +4,7 @@ import Root from "../structure/root";
 import { Button } from "primereact/button";
 import { Chip } from "primereact/chip";
 import { Image } from "primereact/image";
-import Planter from "../../assets/Planter-827x450.jpg";
+import Planter from "../../assets/nature.jpg";
 // Make sure to import PrimeIcons in your main app file if you haven't!
 import "primeicons/primeicons.css";
 
