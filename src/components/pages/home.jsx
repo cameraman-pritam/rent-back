@@ -4,9 +4,10 @@ import Root from "../structure/root";
 import { Button } from "primereact/button";
 import { Chip } from "primereact/chip";
 import { Image } from "primereact/image";
-import Planter from "../../assets/nature.jpg";
+import Planter from "../../assets/nature.png";
 // Make sure to import PrimeIcons in your main app file if you haven't!
 import "primeicons/primeicons.css";
+import { Divider } from "primereact/divider";
 
 const Home = () => {
   return (
@@ -57,7 +58,6 @@ const Home = () => {
                 src={Planter}
                 alt="Sustainable products"
                 imageClassName="w-full h-full object-cover scale-105"
-                preview
               />
             </div>
 
@@ -72,9 +72,17 @@ const Home = () => {
               <p className="text-lg lg:text-xl text-slate-200 font-semibold leading-snug">
                 1,240kg CO2 saved this month by our community.
               </p>
+              <br />
             </div>
           </div>
         </div>
+      </div>
+      <Divider />
+      <div className="bg-[#171c24] rounded-3xl">
+        <p className="text-3xl">Circular Living Made Simple</p>
+        <p className="text-gray-400">
+          Smoother Renting process, at your Fingertips.
+        </p>
       </div>
     </>
   );
