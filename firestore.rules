@@ -2,40 +2,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----------------------------------------------------------------------
-    // PATTERN 1: The "Users" Collection & Subcollections
-    // Perfect for checking user credentials and storing isolated user data.
-    // ----------------------------------------------------------------------
     match /users/{userId} {
-      // Allows the application to check/read the logged-in user's credentials 
-      // and update their own profile data.
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
       
-      // If you store user-generated data in subcollections (e.g., /users/123/posts),
-      // this ensures only the owning user can access or modify those nested documents.
       match /{document=**} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
     }
 
-    // ----------------------------------------------------------------------
-    // PATTERN 2: Flat Data Collections
-    // Use this if your data sits in a top-level collection (like /posts or /tasks)
-    // ----------------------------------------------------------------------
     match /your_custom_collection/{documentId} {
-      
-      // CREATE: Allows new users to easily add data, provided they are logged in 
-      // and they stamp the new document with their own UID in an 'ownerId' field.
-      allow create: if request.auth != null 
-                    && request.resource.data.ownerId == request.auth.uid;
-
-      // READ, UPDATE, DELETE: Ensures the data is only readable and editable 
-      // by the logged-in user whose UID matches the existing document's 'ownerId'.
-      allow read, update, delete: if request.auth != null 
-                                  && resource.data.ownerId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
     }
 
-    // Default deny for everything else to keep your database completely secure.
     match /{document=**} {
       allow read, write: if false;
     }
