@@ -3,6 +3,7 @@ import Planter from "../../assets/nature.png";
 import "primeicons/primeicons.css";
 import { supabase } from "../../utils/supabase";
 import { Skeleton } from "primereact/skeleton";
+import { useNavigate } from "react-router-dom";
 
 const Root = lazy(() => import("../structure/root"));
 const Button = lazy(() =>
@@ -44,6 +45,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState({});
   const [chartOptions, setChartOptions] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchAndProcessUsers = async () => {
@@ -89,7 +91,7 @@ const Home = () => {
               fill: true,
               borderColor: "#38bdf8",
               backgroundColor: "rgba(56, 189, 248, 0.2)",
-              tension: 0.4,
+              tension: 0.2,
               pointBackgroundColor: "#fb923c",
               pointBorderColor: "#0f172a",
               pointHoverBackgroundColor: "#fff",
@@ -161,10 +163,12 @@ const Home = () => {
                 icon="pi pi-arrow-right"
                 iconPos="right"
                 className="bg-sky-400 text-slate-950 font-bold text-lg py-5 px-10 rounded-full border-2 border-dashed border-slate-900/50 hover:bg-sky-300 transition-colors w-full sm:w-auto flex justify-center items-center shadow-xl gap-2"
+                onClick={() => navigate("/browse")}
               />
               <Button
                 label="Our Mission"
                 className="bg-slate-800 text-white font-bold text-lg py-5 px-10 rounded-full hover:bg-slate-700 transition-colors w-full sm:w-auto flex justify-center items-center shadow-xl border-none"
+                onClick={() => navigate("/about")}
               />
             </div>
           </div>
