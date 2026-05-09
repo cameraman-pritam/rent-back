@@ -22,7 +22,7 @@ export const AIProvider = ({ children }) => {
         functionName,
         {
           body: { prompt },
-        }
+        },
       );
 
       if (invokeError) throw new Error(invokeError.message);
@@ -54,6 +54,7 @@ export const AIProvider = ({ children }) => {
 };
 
 // Custom hook for easy access in components
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAI = () => {
   const context = useContext(AIContext);
   if (!context) {
